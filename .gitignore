@@ -1,0 +1,12 @@
+.snakemake/
+results/
+*temp*
+*tmp*
+*.bak
+data/statistics/
+data/chr20.vcf.gz*
+data/chr_20*
+data/chr20.dose*
+data/chr20.empirical*
+data/qc_report.txt
+data/quality-control.html
