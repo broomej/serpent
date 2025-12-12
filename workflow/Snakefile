@@ -4,6 +4,7 @@ container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 rule all:
     input:
         "results/variant_exclude.txt",
+        "results/filtered.vcf.gz",
 
 rule create_variant_exclude:
     input: "data/chr20.info.gz"
@@ -21,4 +22,18 @@ rule create_variant_exclude:
                 $F[6] < {params.rsq_common} | \
                 ($F[4] < {params.maf_thresh} & $F[6] < {params.rsq_rare})' > \
             {output}
+        """
+
+rule filter_vcf:
+    input:
+        vcf="data/test.vcf.gz",
+        tbi="data/test.vcf.gz.tbi",
+        exclude="results/variant_exclude.txt",
+    output: "results/filtered.vcf.gz"
+    shell:
+        """
+        bcftools view -e 'ID=@{input.exclude}' {input.vcf} | \
+            bgzip > \
+            {output}
+        tabix {output}
         """
