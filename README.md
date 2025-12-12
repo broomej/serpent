@@ -9,21 +9,25 @@ location, typically `[PROJECT]/workflow/scripts`.
 
 ### Test data
 
-Test data were downloaded and subsetted from the 1000 Genomes Project with the
-following commands:
+Test data were generated from
+[example data provided on the TOPMed Imputation Server](https://topmedimpute.readthedocs.io/en/latest/workshops/ASHG2023/Session2/).
+Data downloaded from this page were lifted from hg19 to hg38, imputed, and
+phased on the TIS and bundled in this repo. Data were filtered on the TIS using
+an Rsq threshold of 0.3.
 
 ```sh
-source_file=ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
-outfile=test_data_1KG.vcf.gz
-wget ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/$source_file
-wget ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/$source_file.tbi
+unzip chr_20.zip # Enter password included in automatic notification from TIS
 
-bcftools view --regions 22:16050070-16050170 $source_file | \
+# Index the bgzipped VCF file
+
+tabix chr20.dose.vcf.gz
+
+
+bcftools view --regions chr20:4686456-4786456 chr20.dose.vcf.gz | \
     bgzip -c > \
-    $outfile
-tabix $outfile
+    test.vcf.gz
+tabix test.vcf.gz
 
-rm $source_file $source_file.tbi
 ```
 
 ## References
@@ -32,4 +36,6 @@ rm $source_file $source_file.tbi
 
 > Köster, J., Mölder, F., Jablonski, K. P., Letcher, B., Hall, M. B., Tomkins-Tinch, C. H., Sochat, V., Forster, J., Lee, S., Twardziok, S. O., Kanitz, A., Wilm, A., Holtgrewe, M., Rahmann, S., & Nahnsen, S. _Sustainable data analysis with Snakemake_. F1000Research, 10:33, 10, 33, **2021**. https://doi.org/10.12688/f1000research.29032.2.
 
-> The 1000 Genomes Project Consortium. A global reference for human genetic variation. Nature 526, 68–74 (2015)
+TOPMed Study — Taliun, D. et al. (2019) Sequencing of 53,831 diverse genomes from the NHLBI TOPMed Program. Biorxiv, doi:10.1101/563866
+Imputation Server — Das, S., Forer, L., Schönherr, S., Sidore, C., Locke, A. E., Kwong, A., Vrieze, S. I., Chew, E. Y., Levy, S., McGue, M., Schlessinger, D., Stambolian, D., Loh, P.-R., Iacono, W. G., Swaroop, A., Scott, L. J., Cucca, F., Kronenberg, F., Boehnke, M., … Fuchsberger, C. (2016). Next-generation genotype imputation service and methods. Nature Genetics, 48(10), 1284–1287.
+Minimac Imputation — Fuchsberger, C., Abecasis, G. R., & Hinds, D. A. (2014). minimac2: faster genotype imputation. Bioinformatics, 31(5), 782–784.
