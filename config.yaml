@@ -1,0 +1,6 @@
+params:
+    impt_filter:
+        avg_call: 0.95
+        rsq_common: 0.5
+        maf_thresh: 0.05
+        rsq_rare: 0.8

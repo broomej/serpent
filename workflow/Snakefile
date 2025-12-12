@@ -1,0 +1,24 @@
+configfile: "config.yaml"
+container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
+
+rule all:
+    input:
+        "results/variant_exclude.txt",
+
+rule create_variant_exclude:
+    input: "data/chr20.info.gz"
+    output: "results/variant_exclude.txt"
+    params:
+        avg_call=config["params"]["impt_filter"]["avg_call"],
+        rsq_common=config["params"]["impt_filter"]["rsq_common"],
+        maf_thresh=config["params"]["impt_filter"]["maf_thresh"],
+        rsq_rare=config["params"]["impt_filter"]["rsq_rare"],
+    shell:
+        """
+        gunzip -c {input} | \
+            perl -lane 'print $F[2] if \
+                $F[5] < {params.avg_call} | \
+                $F[6] < {params.rsq_common} | \
+                ($F[4] < {params.maf_thresh} & $F[6] < {params.rsq_rare})' > \
+            {output}
+        """
