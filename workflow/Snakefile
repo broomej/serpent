@@ -1,4 +1,3 @@
-configfile: "config.yaml"
 container: "docker://broome/genetics-tools:latest"
 COHORT=["cohorta", "cohortb"]
 REGION=["region1", "region2"]
@@ -14,10 +13,10 @@ rule create_variant_exclude:
         tbi="data/test.info.gz.tbi",
     output: "results/variant_exclude.txt"
     params:
-        avg_call=config["params"]["impt_filter"]["avg_call"],
-        rsq_common=config["params"]["impt_filter"]["rsq_common"],
-        maf_thresh=config["params"]["impt_filter"]["maf_thresh"],
-        rsq_rare=config["params"]["impt_filter"]["rsq_rare"],
+        avg_call=0.95,
+        rsq_common=0.5,
+        maf_thresh=0.05,
+        rsq_rare=0.8,
     shell:
         """
         bcftools query -f '%ID\\n' -i \
