@@ -3,11 +3,14 @@ container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 
 rule all:
     input:
-        "results/variant_exclude.txt",
-        "results/filtered.vcf.gz",
+        expand("results/{cohort}_{region}_filtered.vcf.gz",
+               cohort=["cohorta", "cohortb"],
+               region=["region1", "region2"])
 
 rule create_variant_exclude:
-    input: "data/chr20.info.gz"
+    input:
+        info="data/test.info.gz",
+        tbi="data/test.info.gz.tbi",
     output: "results/variant_exclude.txt"
     params:
         avg_call=config["params"]["impt_filter"]["avg_call"],
@@ -16,20 +19,21 @@ rule create_variant_exclude:
         rsq_rare=config["params"]["impt_filter"]["rsq_rare"],
     shell:
         """
-        gunzip -c {input} | \
-            perl -lane 'print $F[2] if \
-                $F[5] < {params.avg_call} | \
-                $F[6] < {params.rsq_common} | \
-                ($F[4] < {params.maf_thresh} & $F[6] < {params.rsq_rare})' > \
+        bcftools query -f '%ID\\n' -i \
+                'INFO/AVG_CS < {params.avg_call} || \
+                INFO/R2 < {params.rsq_common} || \
+                (INFO/MAF < {params.maf_thresh} && INFO/R2 < {params.rsq_rare})' \
+            {input.info} > \
             {output}
         """
 
 rule filter_vcf:
     input:
-        vcf="data/test.vcf.gz",
-        tbi="data/test.vcf.gz.tbi",
+        vcf="data/{cohort}_{region}.vcf.gz",
+        tbi="data/{cohort}_{region}.vcf.gz.tbi",
         exclude="results/variant_exclude.txt",
-    output: "results/filtered.vcf.gz"
+    output:
+        "results/{cohort}_{region}_filtered.vcf.gz"
     shell:
         """
         bcftools view -e 'ID=@{input.exclude}' {input.vcf} | \
