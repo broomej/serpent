@@ -40,7 +40,7 @@ rule __create_variant_exclude_delim__:
         gunzip -c {input} | perl -lane 'print $F[0] if \
                 $F[5] < {params.avg_call} | \
                 $F[6] < {params.rsq_common | \
-                ($F[4] < {params.maf_thresh} & $F[6] < {params.rsq_rare})}' > \
+                ($F[4] < {params.maf_thresh} & $F[6] < {params.rsq_rare})' > \
             {output}
         """
 
