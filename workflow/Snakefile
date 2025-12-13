@@ -1,0 +1,69 @@
+configfile: "config.yaml"
+container: "docker://broome/genetics-tools:latest"
+COHORT=["cohorta", "cohortb"]
+REGION=["region1", "region2"]
+
+rule all:
+    input:
+        vcf_merged="results/merged.vcf.gz",
+        tbi_merged="results/merged.vcf.gz.tbi",
+
+rule create_variant_exclude:
+    input:
+        info="data/test.info.gz",
+        tbi="data/test.info.gz.tbi",
+    output: "results/variant_exclude.txt"
+    params:
+        avg_call=config["params"]["impt_filter"]["avg_call"],
+        rsq_common=config["params"]["impt_filter"]["rsq_common"],
+        maf_thresh=config["params"]["impt_filter"]["maf_thresh"],
+        rsq_rare=config["params"]["impt_filter"]["rsq_rare"],
+    shell:
+        """
+        bcftools query -f '%ID\\n' -i \
+                'INFO/AVG_CS < {params.avg_call} || \
+                INFO/R2 < {params.rsq_common} || \
+                (INFO/MAF < {params.maf_thresh} && INFO/R2 < {params.rsq_rare})' \
+            {input.info} > \
+            {output}
+        """
+
+rule filter_vcf:
+    input:
+        vcf="data/{cohort}_{region}.vcf.gz",
+        tbi="data/{cohort}_{region}.vcf.gz.tbi",
+        exclude="results/variant_exclude.txt",
+    output:
+        vcf="results/{cohort}_{region}_filtered.vcf.gz",
+        tbi="results/{cohort}_{region}_filtered.vcf.gz.tbi",
+    shell:
+        """
+        bcftools view -e 'ID=@{input.exclude}' {input.vcf} | \
+            bgzip > \
+            {output.vcf}
+        tabix {output.vcf}
+        """
+
+rule concat_vcf:
+    input: expand("results/{{cohort}}_{region}_filtered.vcf.gz", region=REGION)
+    output:
+        vcf="results/{cohort}.vcf.gz",
+        tbi="results/{cohort}.vcf.gz.tbi",
+    shell:
+        """
+        bcftools concat {input} | bgzip -c > {output.vcf}
+        tabix {output.vcf}
+        """ 
+
+rule merge_vcf:
+    input:
+        vcf=expand("results/{cohort}.vcf.gz", cohort=COHORT),
+        tbi=expand("results/{cohort}.vcf.gz.tbi", cohort=COHORT),
+    output:
+        vcf="results/merged.vcf.gz",
+        tbi="results/merged.vcf.gz.tbi"
+    shell:
+        """
+        bcftools merge {input.vcf} | bgzip -c > {output.vcf}
+        tabix {output.vcf}
+        """
