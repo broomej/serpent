@@ -27,6 +27,24 @@ rule create_variant_exclude:
             {output}
         """
 
+rule __create_variant_exclude_delim__:
+    input: "data/test.info.gz",
+    output: "results/__variant_exclude_delim__.txt"
+    params:
+        avg_call=0.95,
+        rsq_common=0.5,
+        maf_thresh=0.05,
+        rsq_rare=0.8,
+    shell:
+        """
+        gunzip -c {input} | perl -lane 'print $F[0] if \
+                $F[5] < {params.avg_call} | \
+                $F[6] < {params.rsq_common | \
+                ($F[4] < {params.maf_thresh} & $F[6] < {params.rsq_rare})}' > \
+            {output}
+        """
+
+
 rule filter_vcf:
     input:
         vcf="data/{cohort}_{region}.vcf.gz",
