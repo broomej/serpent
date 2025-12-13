@@ -1,8 +1,8 @@
 configfile: "config.yaml"
-container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
-
+container: "docker://broome/genetics-tools:latest"
 COHORT=["cohorta", "cohortb"]
 REGION=["region1", "region2"]
+
 rule all:
     input:
         vcf_merged="results/merged.vcf.gz",
@@ -45,11 +45,10 @@ rule filter_vcf:
         """
 
 rule concat_vcf:
-    input:
-        expand("results/{{cohort}}_{region}_filtered.vcf.gz", region=REGION)
+    input: expand("results/{{cohort}}_{region}_filtered.vcf.gz", region=REGION)
     output:
         vcf="results/{cohort}.vcf.gz",
-        tbi="results/{cohort}.vcf.gz.tbi"
+        tbi="results/{cohort}.vcf.gz.tbi",
     shell:
         """
         bcftools concat {input} | bgzip -c > {output.vcf}
