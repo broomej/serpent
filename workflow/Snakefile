@@ -40,8 +40,8 @@ rule filter_vcf:
         """
         bcftools view -e 'ID=@{input.exclude}' {input.vcf} | \
             bgzip > \
-            {output}
-        tabix {output}
+            {output.vcf}
+        tabix {output.vcf}
         """
 
 rule concat_vcf:
@@ -53,17 +53,18 @@ rule concat_vcf:
     shell:
         """
         bcftools concat {input} | bgzip -c > {output.vcf}
-        tabix {output.tbi}
+        tabix {output.vcf}
         """ 
 
 rule merge_vcf:
     input:
-        vcf_concat=expand("results/{cohort}.vcf.gz", cohort=COHORT),
+        vcf=expand("results/{cohort}.vcf.gz", cohort=COHORT),
+        tbi=expand("results/{cohort}.vcf.gz.tbi", cohort=COHORT),
     output:
         vcf="results/merged.vcf.gz",
         tbi="results/merged.vcf.gz.tbi"
     shell:
         """
-        bcftools merge {input.vcf_concat} | bgzip -c > {output.vcf}
-        tabix {output.tbi}
+        bcftools merge {input.vcf} | bgzip -c > {output.vcf}
+        tabix {output.vcf}
         """
