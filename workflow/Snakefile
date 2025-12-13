@@ -1,11 +1,12 @@
 configfile: "config.yaml"
 container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 
+COHORT=["cohorta", "cohortb"]
+REGION=["region1", "region2"]
 rule all:
     input:
-        expand("results/{cohort}_{region}_filtered.vcf.gz",
-               cohort=["cohorta", "cohortb"],
-               region=["region1", "region2"])
+        vcf_merged="results/merged.vcf.gz",
+        tbi_merged="results/merged.vcf.gz.tbi",
 
 rule create_variant_exclude:
     input:
@@ -33,11 +34,36 @@ rule filter_vcf:
         tbi="data/{cohort}_{region}.vcf.gz.tbi",
         exclude="results/variant_exclude.txt",
     output:
-        "results/{cohort}_{region}_filtered.vcf.gz"
+        vcf="results/{cohort}_{region}_filtered.vcf.gz",
+        tbi="results/{cohort}_{region}_filtered.vcf.gz.tbi",
     shell:
         """
         bcftools view -e 'ID=@{input.exclude}' {input.vcf} | \
             bgzip > \
             {output}
         tabix {output}
+        """
+
+rule concat_vcf:
+    input:
+        expand("results/{{cohort}}_{region}_filtered.vcf.gz", region=REGION)
+    output:
+        vcf="results/{cohort}.vcf.gz",
+        tbi="results/{cohort}.vcf.gz.tbi"
+    shell:
+        """
+        bcftools concat {input} | bgzip -c > {output.vcf}
+        tabix {output.tbi}
+        """ 
+
+rule merge_vcf:
+    input:
+        vcf_concat=expand("results/{cohort}.vcf.gz", cohort=COHORT),
+    output:
+        vcf="results/merged.vcf.gz",
+        tbi="results/merged.vcf.gz.tbi"
+    shell:
+        """
+        bcftools merge {input.vcf_concat} | bgzip -c > {output.vcf}
+        tabix {output.tbi}
         """
