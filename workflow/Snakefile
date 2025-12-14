@@ -1,4 +1,3 @@
-container: "docker://broome/genetics-tools:latest"
 COHORT=["cohorta", "cohortb"]
 REGION=["region1", "region2"]
 
