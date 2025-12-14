@@ -26,6 +26,11 @@ rule create_variant_exclude:
             {output}
         """
 
+# This rule wil **not** execute properly with the current input. It's there as
+# a placeholder. This rule creates the same exclusion list as
+# create_variant_exclude but takes a gzipped tab-delimited file as input instead
+# of a VCF. It requires MAF in the 5th column, AVG_CALL in the 6th column,
+# and RSQ in the 7th column.
 rule __create_variant_exclude_delim__:
     input: "data/test.info.gz",
     output: "results/__variant_exclude_delim__.txt"
