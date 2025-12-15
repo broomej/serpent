@@ -5,6 +5,10 @@ rule all:
     input:
         vcf_merged="results/merged.vcf.gz",
         tbi_merged="results/merged.vcf.gz.tbi",
+        gds="results/combined.gds",
+        bed="results/merged.bed",
+        bim="results/merged.bim",
+        fam="results/merged.fam",
 
 rule create_variant_exclude:
     input:
@@ -26,11 +30,11 @@ rule create_variant_exclude:
             {output}
         """
 
-# This rule wil **not** execute properly with the current input. It's there as
-# a placeholder. This rule creates the same exclusion list as
-# create_variant_exclude but takes a gzipped tab-delimited file as input instead
-# of a VCF. It requires MAF in the 5th column, AVG_CALL in the 6th column,
-# and RSQ in the 7th column.
+# This rule wil **not** execute properly with the current input, but it can be
+# imported in another Snakemake workflow. It's there as a placeholder. This rule
+# creates the same exclusion list as create_variant_exclude but takes a gzipped
+# tab-delimited file as input instead of a VCF. It requires MAF in the 5th
+# column, AVG_CALL in the 6th column, and RSQ in the 7th column.
 rule __create_variant_exclude_delim__:
     input: "data/test.info.gz",
     output: "results/__variant_exclude_delim__.txt"
@@ -47,7 +51,6 @@ rule __create_variant_exclude_delim__:
                 ($F[4] < {params.maf_thresh} & $F[6] < {params.rsq_rare})' > \
             {output}
         """
-
 
 rule filter_vcf:
     input:
@@ -88,3 +91,26 @@ rule merge_vcf:
         bcftools merge {input.vcf} | bgzip -c > {output.vcf}
         tabix {output.vcf}
         """
+
+rule vcf_to_plink:
+    input:
+        vcf="results/merged.vcf.gz",
+        tbi="results/merged.vcf.gz.tbi",
+    output:
+        bed="results/merged.bed",
+        bim="results/merged.bim",
+        fam="results/merged.fam",
+    params:
+        plink_exe="plink",
+    shell:
+        """
+        {params.plink_exe} --vcf {input.vcf} --make-bed --out results/merged
+        """
+
+rule convert_to_gds:
+    input:
+        vcf_fn="results/merged.vcf.gz",
+        tbi="results/merged.vcf.gz.tbi",
+    output:
+        out_fn="results/combined.gds",
+    script: "scripts/convert_to_gds.R"
