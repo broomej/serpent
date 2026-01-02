@@ -121,3 +121,11 @@ rule var_ms:
     output: "results/var_missing.rds"
     threads: 2
     script: "scripts/var_ms.R"
+
+rule var_maf:
+    input: "results/combined.gds"
+    output: "results/maf.rds"
+    threads: 2
+    params:
+        minor=True
+    script: "scripts/maf.R"
