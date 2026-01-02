@@ -9,6 +9,7 @@ rule all:
         bed="results/merged.bed",
         bim="results/merged.bim",
         fam="results/merged.fam",
+        var_ms="results/var_missing.rds",
 
 rule create_variant_exclude:
     input:
@@ -114,3 +115,9 @@ rule convert_to_gds:
     output:
         out_fn="results/combined.gds",
     script: "scripts/convert_to_gds.R"
+
+rule var_ms:
+    input: "results/combined.gds"
+    output: "results/var_missing.rds"
+    threads: 2
+    script: "scripts/var_ms.R"
