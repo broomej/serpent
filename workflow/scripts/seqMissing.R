@@ -7,10 +7,10 @@ params <- snakemake@params
 names(params) <- gsub("_", ".", names(params))
 
 library(SeqArray)
-gds <- seqOpen(input[[1]])
+gds <- seqOpen(input$gds_fn)
 arguments <- list(
     gdsfile = gds,
-    parallel = as.numeric(snakemake@threads)
+    parallel = as.integer(snakemake@threads)
 )
 
 if (length(params) > 0) {
@@ -19,9 +19,17 @@ if (length(params) > 0) {
     }
 }
 
-maf <- tibble::tibble(
+if ("variant_id" %in% names(input)) {
+    seqSetFilter(gds, readRDS(input$variant_id))
+}
+
+if ("sample_id" %in% names(input)) {
+    seqSetFilter(gds, sample.id = readRDS(input$sample_id))
+}
+
+var_ms <- tibble::tibble(
     id = seqGetData(gds, "variant.id"),
-    maf = do.call(seqAlleleFreq, arguments)
+    missing_rate = do.call(seqMissing, arguments)
 )
 
-saveRDS(maf, output[[1]])
+saveRDS(var_ms, output[[1]])

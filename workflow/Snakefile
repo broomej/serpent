@@ -3,13 +3,11 @@ REGION=["region1", "region2"]
 
 rule all:
     input:
-        vcf_merged="results/merged.vcf.gz",
-        tbi_merged="results/merged.vcf.gz.tbi",
-        gds="results/combined.gds",
         bed="results/merged.bed",
         bim="results/merged.bim",
         fam="results/merged.fam",
-        var_ms="results/var_missing.rds",
+        varmet="results/variant_metrics.rds",
+        var_pruned="results/ld_pruned.rds"
 
 rule create_variant_exclude:
     input:
@@ -116,16 +114,67 @@ rule convert_to_gds:
         out_fn="results/combined.gds",
     script: "scripts/convert_to_gds.R"
 
-rule var_ms:
-    input: "results/combined.gds"
+rule seqMissing:
+    input:
+        gds_fn="results/combined.gds"
     output: "results/var_missing.rds"
+    params:
+        per_variant=True,
     threads: 2
-    script: "scripts/var_ms.R"
+    script: "scripts/seqMissing.R"
 
-rule var_maf:
-    input: "results/combined.gds"
+rule seqAlleleFreq:
+    input:
+        gds_fn="results/combined.gds"
     output: "results/maf.rds"
     threads: 2
     params:
         minor=True
-    script: "scripts/maf.R"
+    script: "scripts/seqAlleleFreq.R"
+
+rule heterozygosity:
+    input:
+        gds_fn="results/combined.gds"
+    output: "results/var_htz.rds"
+    threads: 2
+    params:
+        margin="by.variant",
+    script: "scripts/heterozygosity.R"
+
+rule hwe:
+    input:
+        gds_fn="results/combined.gds"
+    output: "results/hwe.rds"
+    params:
+        seed=51,
+        parallel=True,
+    script: "scripts/hwe.R"
+
+rule get_var_data:
+    input:
+        gds_fn="results/combined.gds"
+    output: "results/var_data.rds"
+    threads: 2
+    params:
+        build="hg38",
+    script: "scripts/get_var_data.R"
+
+rule combine_varmet:
+    input:
+        "results/var_data.rds",
+        "results/var_missing.rds",
+        "results/maf.rds",
+        "results/var_htz.rds",
+        "results/hwe.rds",
+    output: "results/variant_metrics.rds"
+    script: "scripts/combine_varmet.R"
+
+rule ld_prune:
+    input:
+        gds_fn="results/combined.gds"
+    output: "results/ld_pruned.rds"
+    threads: 2
+    params:
+        method="corr",
+        ld_threshold=0.2,
+    script: "scripts/ld_prune.R"
