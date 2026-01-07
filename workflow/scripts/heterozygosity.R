@@ -8,6 +8,12 @@ names(params) <- gsub("_", ".", names(params))
 
 library(SeqVarTools)
 gds <- seqOpen(input$gds_fn)
+if ("variant_id" %in% names(input)) {
+    seqSetFilter(gds, variant.id = readRDS(input$variant_id))
+}
+if ("sample_id" %in% names(input)) {
+    seqSetFilter(gds, sample.id = readRDS(input$sample_id))
+}
 arguments <- list(
     gdsobj = gds,
     parallel = as.numeric(snakemake@threads)
@@ -17,14 +23,6 @@ if (length(params) > 0) {
     for (n in names(params)) {
         arguments[[n]] <- params[[n]]
     }
-}
-
-if ("variant_id" %in% names(input)) {
-    seqSetFilter(gds, readRDS(input$variant_id))
-}
-
-if ("sample_id" %in% names(input)) {
-    seqSetFilter(gds, sample.id = readRDS(input$sample_id))
 }
 
 htz <- tibble::tibble(

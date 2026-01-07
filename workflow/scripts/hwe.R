@@ -7,11 +7,9 @@ library(SeqVarTools)
 library(dplyr)
 library(magrittr)
 gds <- seqOpen(input$gds_fn)
-
 if ("variant_id" %in% names(input)) {
-    seqSetFilter(gds, readRDS(input$variant_id))
+    seqSetFilter(gds, variant.id = readRDS(input$variant_id))
 }
-
 if ("sample_id" %in% names(input)) {
     seqSetFilter(gds, sample.id = readRDS(input$sample_id))
 }

@@ -18,6 +18,7 @@ if (is.null(input$unrels)) {
     unrels <- readRDS(input$unrels)
 }
 
+# refactor to read in sample/variant filters if provided
 gds <- SeqArray::seqOpen(input$gds)
 pca <- GENESIS::pcair(
     gds,
@@ -35,18 +36,18 @@ saveRDS(pca$vectors, output$pcs)
 saveRDS(pca$unrels, output$unrels)
 saveRDS(pca$rels, output$rels)
 
-pcs <- as.data.frame(pca$vectors[pca$unrels,])
+pcs <- as.data.frame(pca$vectors[pca$unrels, ])
 n <- ncol(pcs)
 names(pcs) <- paste0("PC", 1:n)
 pcs$sample.id <- row.names(pcs)
 
-dat <- data.frame(pc = seq(n), varprop=pca$varprop[seq(n)])
-p <- ggplot(dat, aes(x=factor(pc), y=100*varprop)) +
+dat <- data.frame(pc = seq(n), varprop = pca$varprop[seq(n)])
+p <- ggplot(dat, aes(x = factor(pc), y = 100 * varprop)) +
     geom_point() +
     theme_bw() +
     xlab("PC") +
     ylab("Percent of variance accounted for")
-ggsave(output$scree, plot=p, width=6, height=6)
+ggsave(output$scree, plot = p, width = 6, height = 6)
 
 npr <- min(params$n_pairs, n)
 p <- ggpairs(pcs,
@@ -57,4 +58,4 @@ p <- ggpairs(pcs,
     legend = c(npr, npr)
 )
 
-ggsave(output$pairs, p, width=12, height=12, units="in")
+ggsave(output$pairs, p, width = 12, height = 12, units = "in")

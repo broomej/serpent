@@ -1,7 +1,15 @@
 #! /usr/bin/env Rscript
 
 library(ggplot2)
-gds <- SeqArray::seqOpen(snakemake@input$gds)
+library(SeqArray)
+gds <- seqOpen(snakemake@input$gds)
+if ("variant_id" %in% names(input)) {
+    seqSetFilter(gds, variant.id = readRDS(input$variant_id))
+}
+if ("sample_id" %in% names(input)) {
+    seqSetFilter(gds, sample.id = readRDS(input$sample_id))
+}
+
 king <- SNPRelate::snpgdsIBDKING(
     gds,
     snp.id = readRDS(snakemake@input$var),
