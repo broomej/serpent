@@ -7,7 +7,7 @@ rule all:
         bim="results/merged.bim",
         fam="results/merged.fam",
         varmet="results/variant_metrics.rds",
-        var_pruned="results/ld_pruned.rds"
+        var_pruned="results/ld_pruned.rds",
 
 rule create_variant_exclude:
     input:
@@ -104,6 +104,20 @@ rule vcf_to_plink:
     shell:
         """
         {params.plink_exe} --vcf {input.vcf} --make-bed --out results/merged
+        """
+
+rule plink_check_sex:
+    input:
+        bed="results/merged.bed",
+        bim="results/merged.bim",
+        fam="results/merged.fam",
+    output:
+        "results/merged.sexcheck",
+    params:
+        plink_exe="plink",
+    shell:
+        """
+        {params.plink_exe} --bfile results/merged --check-sex --out results/merged
         """
 
 rule convert_to_gds:
