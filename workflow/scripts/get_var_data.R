@@ -4,6 +4,13 @@ params <- snakemake@params
 library(SeqArray)
 
 gds <- seqOpen(input$gds_fn)
+if ("variant_id" %in% names(input)) {
+    seqSetFilter(gds, variant.id = readRDS(input$variant_id))
+}
+if ("sample_id" %in% names(input)) {
+    seqSetFilter(gds, sample.id = readRDS(input$sample_id))
+}
+
 var <- tibble::tibble(
     id = seqGetData(gds, "variant.id"),
     annotation.id = seqGetData(gds, "annotation/id"),

@@ -13,11 +13,9 @@ arguments <- list(
     sample.id = NULL,
     snp.id = NULL
 )
-
 if ("sample_id" %in% names(input)) {
     arguments$sample.id <- readRDS(input$sample_id)
 }
-
 if ("snp_id" %in% names(input)) {
     arguments$snp.id <- readRDS(input$snp_id)
 }
