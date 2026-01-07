@@ -26,9 +26,15 @@ if (length(params) > 0) {
     }
 }
 
-var_ms <- tibble::tibble(
-    id = seqGetData(gds, "variant.id"),
+if ("by.variant" %in% names(arguments)) {
+    if (!arguments$by.variant) idtype <- "sample.id"
+} else {
+    idtype <- "variant.id"
+}
+
+ms <- tibble::tibble(
+    id = as.character(seqGetData(gds, idtype)),
     missing_rate = do.call(seqMissing, arguments)
 )
 
-saveRDS(var_ms, output[[1]])
+saveRDS(ms, output[[1]])

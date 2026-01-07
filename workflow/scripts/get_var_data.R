@@ -12,8 +12,8 @@ if ("sample_id" %in% names(input)) {
 }
 
 var <- tibble::tibble(
-    id = seqGetData(gds, "variant.id"),
-    annotation.id = seqGetData(gds, "annotation/id"),
+    id = as.character(seqGetData(gds, "variant.id")),
+    annotation.id = as.character(seqGetData(gds, "annotation/id")),
     chr = seqGetData(gds, "chromosome"),
     pos = seqGetData(gds, "position"),
     allele = seqGetData(gds, "allele")

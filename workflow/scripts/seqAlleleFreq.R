@@ -27,7 +27,7 @@ if (length(params) > 0) {
 }
 
 maf <- tibble::tibble(
-    id = seqGetData(gds, "variant.id"),
+    id = as.character(seqGetData(gds, "variant.id")),
     maf = do.call(seqAlleleFreq, arguments)
 )
 

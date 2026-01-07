@@ -16,7 +16,8 @@ if ("sample_id" %in% names(input)) {
 }
 arguments <- list(
     gdsobj = gds,
-    parallel = as.numeric(snakemake@threads)
+    parallel = as.numeric(snakemake@threads),
+    use.names = TRUE
 )
 
 if (length(params) > 0) {
@@ -25,9 +26,10 @@ if (length(params) > 0) {
     }
 }
 
-htz <- tibble::tibble(
-    id = seqGetData(gds, "variant.id"),
-    htz = do.call(heterozygosity, arguments)
+htz <- do.call(heterozygosity, arguments)
+out <- tibble::tibble(
+    id = as.character(names(htz)),
+    heterozygosity = htz
 )
 
-saveRDS(htz, output[[1]])
+saveRDS(out, output[[1]])

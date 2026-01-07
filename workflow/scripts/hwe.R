@@ -20,5 +20,5 @@ hwe_pmt <- hwe(gds, permute = TRUE, parallel = parallel) %>%
 
 hwe(gds, permute = FALSE, parallel = parallel) %>%
     left_join(hwe_pmt, by = "variant.id") %>%
-    rename(id = variant.id) %>%
+    mutate(id = as.character(variant.id)) %>%
     saveRDS(output[[1]])
