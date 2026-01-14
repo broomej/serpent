@@ -12,4 +12,4 @@ if (length(fail) == 0) {
 
 saveRDS(fail, output$fail)
 writeLines(table(sexcheck$STATUS, useNA = "ifany"), output$summary)
-saveRDS(pass, output$pass)
+saveRDS(pass, output$ok)
