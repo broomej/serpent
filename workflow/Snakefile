@@ -169,6 +169,9 @@ rule combine_varmet:
     output: "results/variant_metrics.rds"
     script: "scripts/combine_varmet.R"
 
+rule parse_sexcheck:
+    script: "scripts/parse_sexcheck.R"
+
 rule ld_prune:
     input:
         gds_fn="results/combined.gds"

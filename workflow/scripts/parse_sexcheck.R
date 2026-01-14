@@ -1,6 +1,5 @@
 input <- snakemake@input
 output <- snakemake@output
-params <- snakemake@params
 
 sexcheck <- read.table(input[[1]], header = TRUE, stringsAsFactors = FALSE)
 
