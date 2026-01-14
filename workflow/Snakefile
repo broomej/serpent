@@ -34,7 +34,7 @@ rule create_variant_exclude:
 # creates the same exclusion list as create_variant_exclude but takes a gzipped
 # tab-delimited file as input instead of a VCF. It requires MAF in the 5th
 # column, AVG_CALL in the 6th column, and RSQ in the 7th column.
-rule __create_variant_exclude_delim__:
+rule create_variant_exclude_delim:
     input: "data/test.info.gz",
     output: "results/__variant_exclude_delim__.txt"
     params:
