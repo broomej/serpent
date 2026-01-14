@@ -106,20 +106,6 @@ rule vcf_to_plink:
         {params.plink_exe} --vcf {input.vcf} --make-bed --out results/merged
         """
 
-rule plink_check_sex:
-    input:
-        bed="results/merged.bed",
-        bim="results/merged.bim",
-        fam="results/merged.fam",
-    output:
-        "results/merged.sexcheck",
-    params:
-        plink_exe="plink",
-    shell:
-        """
-        {params.plink_exe} --bfile results/merged --check-sex --out results/merged
-        """
-
 rule convert_to_gds:
     input:
         vcf_fn="results/merged.vcf.gz",
