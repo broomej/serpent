@@ -18,6 +18,11 @@ if ("snp_id" %in% names(input)) {
     arguments[["snp.id"]] <- readRDS(input$snp_id)
 }
 
+if ("seed" %in% names(params)) {
+    set.seed(params[["seed"]])
+    params[["seed"]] <- NULL
+}
+
 if (length(params) > 0) {
     for (n in names(params)) {
         arguments[[n]] <- params[[n]]

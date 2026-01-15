@@ -59,9 +59,11 @@ rule filter_vcf:
     output:
         vcf="results/{cohort}_{region}_filtered.vcf.gz",
         tbi="results/{cohort}_{region}_filtered.vcf.gz.tbi",
+    params:
+        extra_bcftools_opts="--no-version",
     shell:
         """
-        bcftools view -e 'ID=@{input.exclude}' {input.vcf} | \
+        bcftools view {params.extra_bcftools_opts} -e 'ID=@{input.exclude}' {input.vcf} | \
             bgzip > \
             {output.vcf}
         tabix {output.vcf}
@@ -72,9 +74,11 @@ rule concat_vcf:
     output:
         vcf="results/{cohort}.vcf.gz",
         tbi="results/{cohort}.vcf.gz.tbi",
+    params:
+        extra_bcftools_opts="--no-version",
     shell:
         """
-        bcftools concat {input} | bgzip -c > {output.vcf}
+        bcftools concat {params.extra_bcftools_opts} {input} | bgzip -c > {output.vcf}
         tabix {output.vcf}
         """ 
 
@@ -85,9 +89,11 @@ rule merge_vcf:
     output:
         vcf="results/merged.vcf.gz",
         tbi="results/merged.vcf.gz.tbi"
+    params:
+        extra_bcftools_opts="--no-version",
     shell:
         """
-        bcftools merge {input.vcf} | bgzip -c > {output.vcf}
+        bcftools merge {params.extra_bcftools_opts} {input.vcf} | bgzip -c > {output.vcf}
         tabix {output.vcf}
         """
 
@@ -100,7 +106,7 @@ rule vcf_to_plink:
         bim="results/merged.bim",
         fam="results/merged.fam",
     params:
-        plink_exe="plink",
+        plink_exe="plink1.9",
     shell:
         """
         {params.plink_exe} --vcf {input.vcf} --make-bed --out results/merged
@@ -147,7 +153,7 @@ rule hwe:
     output: "results/hwe.rds"
     params:
         seed=51,
-        parallel=True,
+        parallel=False,
     script: "scripts/hwe.R"
 
 rule get_var_data:
@@ -180,4 +186,5 @@ rule ld_prune:
     params:
         method="corr",
         ld_threshold=0.2,
+        seed=51,
     script: "scripts/ld_prune.R"

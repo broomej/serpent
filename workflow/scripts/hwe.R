@@ -14,7 +14,11 @@ if ("sample_id" %in% names(input)) {
     seqSetFilter(gds, sample.id = readRDS(input$sample_id))
 }
 
-set.seed(params$seed)
+if ("seed" %in% names(params)) {
+    set.seed(params[["seed"]])
+    params[["seed"]] <- NULL
+}
+
 hwe_pmt <- hwe(gds, permute = TRUE, parallel = parallel) %>%
     select(variant.id, p_perm = p)
 
