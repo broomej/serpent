@@ -26,8 +26,11 @@ if (length(params) > 0) {
     }
 }
 
-if ("by.variant" %in% names(arguments)) {
-    if (!arguments$by.variant) idtype <- "sample.id"
+idtype <- NULL
+if ("per.variant" %in% names(arguments)) {
+    if (!arguments$per.variant) {
+        idtype <- "sample.id"
+    }
 } else {
     idtype <- "variant.id"
 }
