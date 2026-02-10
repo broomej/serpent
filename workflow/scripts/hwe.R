@@ -20,9 +20,10 @@ if ("seed" %in% names(params)) {
 }
 
 hwe_pmt <- hwe(gds, permute = TRUE, parallel = parallel) %>%
-    select(variant.id, p_perm = p)
+    arrange(p)
 
-hwe(gds, permute = FALSE, parallel = parallel) %>%
-    left_join(hwe_pmt, by = "variant.id") %>%
-    mutate(id = as.character(variant.id)) %>%
-    saveRDS(output[[1]])
+hwe <- hwe(gds, permute = FALSE, parallel = parallel) %>%
+    arrange(p) %>%
+    mutate(id = as.character(variant.id))
+hwe$p_perm <- hwe_pmt$p
+saveRDS(hwe, output[[1]])
