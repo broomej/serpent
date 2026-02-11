@@ -23,6 +23,10 @@ if ("seed" %in% names(params)) {
     params[["seed"]] <- NULL
 }
 
+if (!is.null(snakemake@threads)) {
+    arguments[["num.thread"]] <- snakemake@threads
+}
+
 if (length(params) > 0) {
     for (n in names(params)) {
         arguments[[n]] <- params[[n]]
