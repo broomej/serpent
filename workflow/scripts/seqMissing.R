@@ -26,13 +26,11 @@ if (length(params) > 0) {
     }
 }
 
-idtype <- NULL
+idtype <- "variant.id"
 if ("per.variant" %in% names(arguments)) {
     if (!arguments$per.variant) {
         idtype <- "sample.id"
     }
-} else {
-    idtype <- "variant.id"
 }
 
 ms <- tibble::tibble(
