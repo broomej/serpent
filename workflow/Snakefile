@@ -188,3 +188,11 @@ rule ld_prune:
         ld_threshold=0.2,
         seed=51,
     script: "scripts/ld_prune.R"
+
+rule snpgdsIBDKING:
+    input:
+        gds_fn="results/combined.gds"
+    output: "results/ibd_king.rds"
+    params:
+        type="KING-robust"
+    script: "scripts/king.R"
