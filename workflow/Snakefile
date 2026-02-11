@@ -196,3 +196,10 @@ rule snpgdsIBDKING:
     params:
         type="KING-robust"
     script: "scripts/king.R"
+
+rule pcair:
+    input:
+        gds_fn="results/combined.gds",
+    output:
+        pcair="results/pcair.rds"
+    script: "scripts/pcair.R"
