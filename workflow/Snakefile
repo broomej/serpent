@@ -178,7 +178,7 @@ rule combine_varmet:
 rule parse_sexcheck:
     script: "scripts/parse_sexcheck.R"
 
-rule ld_prune:
+rule snpgdsLDpruning:
     input:
         gds_fn="results/combined.gds"
     output: "results/ld_pruned.rds"
