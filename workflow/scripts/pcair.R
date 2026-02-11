@@ -1,42 +1,56 @@
 #! /usr/bin/env Rscript
 
 library(ggplot2)
-library(GGally)
+library(magrittr)
+library(dplyr)
 
 input <- snakemake@input
 output <- snakemake@output
 params <- snakemake@params
-kinthresh <- params$kinthresh
-divthresh <- params$kinthresh
-num_thread <- as.integer(snakemake@threads)
-divmat <- readRDS(input$div)
-kinmat <- readRDS(input$kin)
 
-if (is.null(input$unrels)) {
-    unrels <- NULL
-} else {
-    unrels <- readRDS(input$unrels)
+n_pairs <- params$n_pairs
+params$n_pairs <- NULL
+ggroup <- params$pc_pairs_group
+params$pc_pairs_group <- NULL
+id_name <- params$id_name
+params$id_name <- NULL
+pairs_prfx <- params$pairs_prfx
+params$pairs_prfx <- NULL
+
+gds <- SeqArray::seqOpen(input$gds_fn)
+arguments <- list(
+    gdsobj = gds,
+    divobj = readRDS(input$divobj),
+    kinobj = readRDS(input$kinobj),
+    num.cores = as.integer(snakemake@threads)
+)
+
+if (!is.null(input$unrel_set)) {
+    arguments$unrel.set <- readRDS(input$unrel_set)
+}
+if (!is.null(input$sample_include)) {
+    arguments$sample.include <- readRDS(input$sample_include)
+}
+if (!is.null(input$snp_include)) {
+    arguments$snp.include <- readRDS(input$snp_include)
 }
 
-# refactor to read in sample/variant filters if provided
-gds <- SeqArray::seqOpen(input$gds)
-pca <- GENESIS::pcair(
-    gds,
-    kinobj = kinmat,
-    kin.thresh = kinthresh,
-    divobj = divmat,
-    div.thresh = divthresh,
-    snp.include = readRDS(input$var),
-    unrel.set = unrels,
-    num.cores = num_thread
-)
+if (length(params) > 0) {
+    for (n in names(params)) {
+        arguments[[n]] <- params[[n]]
+    }
+}
+
+names(arguments) <- gsub("_", ".", names(arguments))
+
+pca <- do.call(GENESIS::pcair, arguments)
 
 saveRDS(pca, output$pcair)
 saveRDS(pca$vectors, output$pcs)
 saveRDS(pca$unrels, output$unrels)
 saveRDS(pca$rels, output$rels)
-
 pcs <- as.data.frame(pca$vectors[pca$unrels, ])
+
 n <- ncol(pcs)
 names(pcs) <- paste0("PC", 1:n)
 pcs$sample.id <- row.names(pcs)
@@ -49,13 +63,19 @@ p <- ggplot(dat, aes(x = factor(pc), y = 100 * varprop)) +
     ylab("Percent of variance accounted for")
 ggsave(output$scree, plot = p, width = 6, height = 6)
 
-npr <- min(params$n_pairs, n)
-p <- ggpairs(pcs,
-    columns = 1:npr,
-    lower = list(continuous = wrap("points", alpha = 0.5)),
-    diag = list(continuous = "densityDiag"),
-    upper = list(continuous = "blank"),
-    legend = c(npr, npr)
-)
+npr <- min(n_pairs, n)
 
-ggsave(output$pairs, p, width = 12, height = 12, units = "in")
+if ("pheno" %in% names(input)) {
+    pheno <- readRDS(input$pheno)[, c(id_name, ggroup)]
+    pcs %<>% left_join(pheno, c(sample.id = id_name))
+}
+for (i in 1:(npr - 1)) {
+    p <- ggplot(
+        pcs,
+        aes_string(x = names(pcs)[i + 1L], y = names(pcs)[i], color = ggroup)
+    ) +
+        geom_point(alpha = 0.5, size = 1) +
+        theme_bw()
+    outname <- sprintf("%s_PC%s_PC%s.png", pairs_prfx, i, i + 1L)
+    ggsave(outname, p, width = 6, height = 6)
+}
