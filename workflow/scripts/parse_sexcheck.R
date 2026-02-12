@@ -3,6 +3,7 @@ output <- snakemake@output
 library(dplyr)
 
 sexcheck <- read.table(input[[1]], header = TRUE, stringsAsFactors = FALSE)
+saveRDS(sexcheck, output$sexcheck)
 
 pass <- filter(sexcheck, STATUS == "OK")$IID
 fail <- filter(sexcheck, STATUS == "PROBLEM")$IID
