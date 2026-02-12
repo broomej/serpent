@@ -2,6 +2,7 @@ input <- snakemake@input
 output <- snakemake@output
 params <- snakemake@params
 library(SeqArray)
+library(magrittr)
 
 gds <- seqOpen(input$gds_fn)
 if ("variant_id" %in% names(input)) {
@@ -30,4 +31,6 @@ for (x in pca_filt$chrom) {
     var$pcaSnpFilter[idx] <- FALSE
 }
 
-saveRDS(var, output[[1]])
+dplyr::filter(var, pcaSnpFilter) %$%
+    id %>%
+    saveRDS(output[[1]])
