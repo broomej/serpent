@@ -203,3 +203,11 @@ rule pcair:
     output:
         pcair="results/pcair.rds"
     script: "scripts/pcair.R"
+
+rule pcrelate:
+    input:
+        gds_fn="results/combined.gds",
+    output:
+        pcr="results/pcrelate.rds",
+        grm="results/pcrelate_grm.rds",
+    script: "scripts/pcrelate.R"
