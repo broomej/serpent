@@ -18,7 +18,16 @@ names(input) <- gsub("_", ".", names(input))
 names(params) <- gsub("_", ".", names(params))
 names(output) <- gsub("_", ".", names(output))
 
-arguments <- c(input, output[[1]], params, parallel = snakemake@threads)
+arguments <- list(
+    unlist(input),
+    output[[1]],
+    parallel = snakemake@threads
+)
+if (length(params) > 0) {
+    for (n in names(params)) {
+        arguments[[n]] <- params[[n]]
+    }
+}
 
 vcf_in <- any("vcf.fn" %in% names(input))
 bcf_in <- any("bcf.fn" %in% names(input))
