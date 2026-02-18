@@ -6,7 +6,6 @@ params <- snakemake@params
 if (any(names(input) == "")) {
     input <- input[!(names(input) == "")]
 }
-
 # *.vcf.gz.tbi index files are required by rule vcf_to_gds but they are not
 # passed to seqVCF2GDS, so remove them here.
 input <- input[!(names(input) == "tbi")]
@@ -18,11 +17,10 @@ names(input) <- gsub("_", ".", names(input))
 names(params) <- gsub("_", ".", names(params))
 names(output) <- gsub("_", ".", names(output))
 
-arguments <- list(
-    unlist(input),
-    output[[1]],
-    parallel = snakemake@threads
-)
+arguments <- input
+arguments[[length(arguments) + 1]] <- output[[1]]
+arguments$parallel <- snakemake@threads
+
 if (length(params) > 0) {
     for (n in names(params)) {
         arguments[[n]] <- params[[n]]
