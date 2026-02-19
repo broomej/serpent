@@ -35,7 +35,6 @@ if ("family_id" %in% names(input)) {
 }
 
 king <- do.call(SNPRelate::snpgdsIBDKING, arguments)
-print(str(king))
 
 rownames(king$kinship) <- king$sample.id
 colnames(king$kinship) <- king$sample.id
