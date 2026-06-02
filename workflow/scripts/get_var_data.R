@@ -31,6 +31,4 @@ for (x in pca_filt$chrom) {
     var$pcaSnpFilter[idx] <- FALSE
 }
 
-dplyr::filter(var, pcaSnpFilter) %$%
-    id %>%
-    saveRDS(output[[1]])
+dplyr::filter(var, pcaSnpFilter) %>% saveRDS(output[[1]])
