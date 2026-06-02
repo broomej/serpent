@@ -8,6 +8,8 @@ rule all:
         fam="results/merged.fam",
         varmet="results/variant_metrics.rds",
         var_pruned="results/ld_pruned.rds",
+        pcr="results/pcrelate.rds",
+        grm="results/pcrelate_grm.rds",
 
 rule create_variant_exclude:
     input:
@@ -192,22 +194,53 @@ rule snpgdsLDpruning:
 rule snpgdsIBDKING:
     input:
         gds_fn="results/combined.gds"
-    output: "results/ibd_king.rds"
+    output:
+        king="results/ibd_king.rds",
+        grm="results/king_grm.rds",
     params:
         type="KING-robust"
     script: "scripts/king.R"
 
+rule king_detect_dups_mz:
+    input:
+        king="results/ibd_king.rds"
+    output:
+        dups="results/king_dups.rds",
+        dups_removed="results/samples_dups_removed.rds",
+    params:
+        threshold=(0.5 * 0.25) ** 0.5 # Geometric mean of dup/MZ and 1st degree thresholds
+    script: "scripts/king_detect_dups_mz.R"
+
 rule pcair:
     input:
         gds_fn="results/combined.gds",
+        sample_id="results/samples_dups_removed.rds",
+        divobj="results/king_grm.rds",
+        kinobj="results/king_grm.rds",
     output:
-        pcair="results/pcair.rds"
+        pcair="results/pcair.rds",
+        pcs="results/pcair_pcs.rds",
+        unrels="results/pcair_unrels.rds",
+        rels="results/pcair_rels.rds",
+        scree="figures/pcair_scree.png",
+    params:
+        n_pairs=4,
+        pairs_prfx="figures/pcair_pairs",
     script: "scripts/pcair.R"
 
 rule pcrelate:
     input:
         gds_fn="results/combined.gds",
+        # throws error "All samples in training.set must be in sample.include",
+        # remove for now
+        # sample_include="results/samples_dups_removed.rds",
+        pca="results/pcair.rds",
     output:
         pcr="results/pcrelate.rds",
         grm="results/pcrelate_grm.rds",
+    params:
+        variantBlock=5000,
+        scaleKin=1,
+        n_pcs=4,
+        verbose=True,
     script: "scripts/pcrelate.R"

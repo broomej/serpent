@@ -2,8 +2,14 @@
 
 ## Usage
 
-Clone this repo as a submodule in your Snakemake project in the appropriate
-location, typically `[PROJECT]/workflow/scripts`.
+Import this as a Snakemake module inside of your Snakefile or rule file e.g.:
+
+```snakemake
+module serpent:
+    snakefile: github("broomej/serpent", path="workflow/Snakefile", tag="v1.0.0")
+```
+
+To run on test data, simply do `snakemake -c [N_CORES]`
 
 ## Testing
 
@@ -54,6 +60,10 @@ rm *temp* cohorta cohortb region1 region2
 ```
 
 ## References
+
+This project is still in pre-release and I haven't compiled all of the
+references for its software dependencies. This is an incomplete list of
+citations.
 
 > Gogarten, S.M., Sofer, T., Chen, H., Yu, C., Brody, J.A., Thornton, T.A., Rice, K.M., and Conomos, M.P. (2019). Genetic association testing using the GENESIS R/Bioconductor package. _Bioinformatics_. doi:10.1093/bioinformatics/btz567.
 
