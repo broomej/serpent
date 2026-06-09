@@ -1,26 +1,4 @@
-COHORT=["cohorta", "cohortb"]
-REGION=["region1", "region2"]
-
-rule all:
-    input:
-        bed="results/merged.bed",
-        bim="results/merged.bim",
-        fam="results/merged.fam",
-        varmet="results/variant_metrics.rds",
-        var_pruned="results/ld_pruned.rds",
-        pcr="results/pcrelate.rds",
-        grm="results/pcrelate_grm.rds",
-
 rule create_variant_exclude:
-    input:
-        info="data/test.info.gz",
-        tbi="data/test.info.gz.tbi",
-    output: "results/variant_exclude.txt"
-    params:
-        avg_call=0.95,
-        rsq_common=0.5,
-        maf_thresh=0.05,
-        rsq_rare=0.8,
     shell:
         """
         bcftools query -f '%ID\\n' -i \
@@ -31,11 +9,6 @@ rule create_variant_exclude:
             {output}
         """
 
-# This rule wil **not** execute properly with the current input, but it can be
-# imported in another Snakemake workflow. It's there as a placeholder. This rule
-# creates the same exclusion list as create_variant_exclude but takes a gzipped
-# tab-delimited file as input instead of a VCF. It requires MAF in the 5th
-# column, AVG_CALL in the 6th column, and RSQ in the 7th column.
 rule create_variant_exclude_delim:
     shell:
         """
@@ -47,15 +20,6 @@ rule create_variant_exclude_delim:
         """
 
 rule filter_vcf:
-    input:
-        vcf="data/{cohort}_{region}.vcf.gz",
-        tbi="data/{cohort}_{region}.vcf.gz.tbi",
-        exclude="results/variant_exclude.txt",
-    output:
-        vcf="results/{cohort}_{region}_filtered.vcf.gz",
-        tbi="results/{cohort}_{region}_filtered.vcf.gz.tbi",
-    params:
-        extra_bcftools_opts="--no-version",
     shell:
         """
         bcftools view {params.extra_bcftools_opts} -e 'ID=@{input.exclude}' {input.vcf} | \
@@ -65,12 +29,6 @@ rule filter_vcf:
         """
 
 rule concat_vcf:
-    input: expand("results/{{cohort}}_{region}_filtered.vcf.gz", region=REGION)
-    output:
-        vcf="results/{cohort}.vcf.gz",
-        tbi="results/{cohort}.vcf.gz.tbi",
-    params:
-        extra_bcftools_opts="--no-version",
     shell:
         """
         bcftools concat {params.extra_bcftools_opts} {input} | bgzip -c > {output.vcf}
@@ -78,14 +36,6 @@ rule concat_vcf:
         """ 
 
 rule merge_vcf:
-    input:
-        vcf=expand("results/{cohort}.vcf.gz", cohort=COHORT),
-        tbi=expand("results/{cohort}.vcf.gz.tbi", cohort=COHORT),
-    output:
-        vcf="results/merged.vcf.gz",
-        tbi="results/merged.vcf.gz.tbi"
-    params:
-        extra_bcftools_opts="--no-version",
     shell:
         """
         bcftools merge {params.extra_bcftools_opts} {input.vcf} | bgzip -c > {output.vcf}
@@ -93,147 +43,59 @@ rule merge_vcf:
         """
 
 rule vcf_to_plink:
-    input:
-        vcf="results/merged.vcf.gz",
-        tbi="results/merged.vcf.gz.tbi",
-    output:
-        bed="results/merged.bed",
-        bim="results/merged.bim",
-        fam="results/merged.fam",
     params:
         plink_exe="plink1.9",
     shell:
         """
-        {params.plink_exe} --vcf {input.vcf} --make-bed --out results/merged
+        {params.plink_exe} --vcf {input.vcf} --make-bed --out {params.out_prefix}
+        mv {params.out_prefix}.log {log}
         """
 
 rule convert_to_gds:
-    input:
-        vcf_fn="results/merged.vcf.gz",
-        tbi="results/merged.vcf.gz.tbi",
-    output:
-        out_fn="results/combined.gds",
     script: "scripts/convert_to_gds.R"
 
 rule seqMissing:
-    input:
-        gds_fn="results/combined.gds"
-    output: "results/var_missing.rds"
-    params:
-        per_variant=True,
-    threads: 2
     script: "scripts/seqMissing.R"
 
 rule seqAlleleFreq:
-    input:
-        gds_fn="results/combined.gds"
-    output: "results/maf.rds"
-    threads: 2
-    params:
-        minor=True
     script: "scripts/seqAlleleFreq.R"
 
 rule heterozygosity:
-    input:
-        gds_fn="results/combined.gds"
-    output: "results/var_htz.rds"
-    threads: 2
-    params:
-        margin="by.variant",
     script: "scripts/heterozygosity.R"
 
 rule hwe:
-    input:
-        gds_fn="results/combined.gds"
-    output: "results/hwe.rds"
     params:
         seed=51,
-        parallel=False,
     script: "scripts/hwe.R"
 
 rule get_var_data:
-    input:
-        gds_fn="results/combined.gds"
-    output: "results/var_data.rds"
-    threads: 2
     params:
         build="hg38",
     script: "scripts/get_var_data.R"
 
 rule combine_varmet:
-    input:
-        "results/var_data.rds",
-        "results/var_missing.rds",
-        "results/maf.rds",
-        "results/var_htz.rds",
-        "results/hwe.rds",
-    output: "results/variant_metrics.rds"
     script: "scripts/combine_varmet.R"
 
 rule parse_sexcheck:
     script: "scripts/parse_sexcheck.R"
 
 rule snpgdsLDpruning:
-    input:
-        gds_fn="results/combined.gds"
-    output: "results/ld_pruned.rds"
-    threads: 2
     params:
-        method="corr",
-        ld_threshold=0.2,
         seed=51,
     script: "scripts/ld_prune.R"
 
 rule snpgdsIBDKING:
-    input:
-        gds_fn="results/combined.gds"
-    output:
-        king="results/ibd_king.rds",
-        grm="results/king_grm.rds",
-    params:
-        type="KING-robust"
     script: "scripts/king.R"
 
 rule king_detect_dups_mz:
-    input:
-        king="results/ibd_king.rds"
-    output:
-        dups="results/king_dups.rds",
-        dups_removed="results/samples_dups_removed.rds",
     params:
         threshold=(0.5 * 0.25) ** 0.5 # Geometric mean of dup/MZ and 1st degree thresholds
     script: "scripts/king_detect_dups_mz.R"
 
 rule pcair:
-    input:
-        gds_fn="results/combined.gds",
-        sample_id="results/samples_dups_removed.rds",
-        divobj="results/king_grm.rds",
-        kinobj="results/king_grm.rds",
-    output:
-        pcair="results/pcair.rds",
-        pcs="results/pcair_pcs.rds",
-        unrels="results/pcair_unrels.rds",
-        rels="results/pcair_rels.rds",
-        scree="figures/pcair_scree.png",
-    params:
-        n_pairs=4,
-        pairs_prfx="figures/pcair_pairs",
     script: "scripts/pcair.R"
 
 rule pcrelate:
-    input:
-        gds_fn="results/combined.gds",
-        # throws error "All samples in training.set must be in sample.include",
-        # remove for now
-        # sample_include="results/samples_dups_removed.rds",
-        pca="results/pcair.rds",
-    output:
-        pcr="results/pcrelate.rds",
-        grm="results/pcrelate_grm.rds",
     params:
-        variantBlock=5000,
-        scaleKin=1,
-        n_pcs=4,
         verbose=True,
     script: "scripts/pcrelate.R"
