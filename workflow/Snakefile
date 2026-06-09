@@ -37,13 +37,6 @@ rule create_variant_exclude:
 # tab-delimited file as input instead of a VCF. It requires MAF in the 5th
 # column, AVG_CALL in the 6th column, and RSQ in the 7th column.
 rule create_variant_exclude_delim:
-    input: "data/test.info.gz",
-    output: "results/__variant_exclude_delim__.txt"
-    params:
-        avg_call=0.95,
-        rsq_common=0.5,
-        maf_thresh=0.05,
-        rsq_rare=0.8,
     shell:
         """
         gunzip -c {input} | perl -lane 'print $F[0] if \
