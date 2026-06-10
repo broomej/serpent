@@ -6,30 +6,21 @@ input <- snakemake@input
 output <- snakemake@output
 params <- snakemake@params
 
-# The S4 snakemake object can duplicate inputs; remove unnamed ones.
-if (any(names(input) == "")) {
-    input <- input[!(names(input) == "")]
-}
 # *.vcf.gz.tbi index files are required by rule vcf_to_gds but they are not
 # passed to seqVCF2GDS, so remove them here.
 input <- input[!(names(input) == "tbi")]
 
 # The SeqArray functions expect some arguments with dots in their names, but
-# that's an illegal character for Snakemake named inputs/outputs/params.
+# that's an illegal character for Snakemake named inputs/outputs.
 # Substitute underscores with dots.
 names(input) <- gsub("_", ".", names(input))
-names(params) <- gsub("_", ".", names(params))
 names(output) <- gsub("_", ".", names(output))
 
 arguments <- input
 arguments[[length(arguments) + 1]] <- output[[1]]
 arguments$parallel <- snakemake@threads
 
-if (length(params) > 0) {
-    for (n in names(params)) {
-        arguments[[n]] <- params[[n]]
-    }
-}
+arguments <- c(arguments, params$seq2GDS_args)
 
 vcf_in <- any("vcf.fn" %in% names(input))
 bcf_in <- any("bcf.fn" %in% names(input))

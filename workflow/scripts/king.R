@@ -5,7 +5,6 @@ sink(logcon, type = "message")
 input <- snakemake@input
 output <- snakemake@output
 params <- snakemake@params
-names(params) <- gsub("_", ".", names(params))
 
 library(ggplot2)
 library(SeqArray)
@@ -14,7 +13,6 @@ gds <- seqOpen(input$gds_fn)
 
 if ("seed" %in% names(params)) {
     set.seed(params[["seed"]])
-    params[["seed"]] <- NULL
 }
 
 arguments <- list(
@@ -22,11 +20,7 @@ arguments <- list(
     num.thread = as.numeric(snakemake@threads)
 )
 
-if (length(params) > 0) {
-    for (n in names(params)) {
-        arguments[[n]] <- params[[n]]
-    }
-}
+arguments <- c(arguments, params$snpgdsIBDKING_args)
 
 if ("snp_id" %in% names(input)) {
     arguments[["snp.id"]] <- readRDS(input$snp_id)

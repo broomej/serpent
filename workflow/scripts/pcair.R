@@ -11,13 +11,9 @@ output <- snakemake@output
 params <- snakemake@params
 
 n_pairs <- params$n_pairs
-params$n_pairs <- NULL
 ggroup <- params$pc_pairs_group
-params$pc_pairs_group <- NULL
 id_name <- params$id_name
-params$id_name <- NULL
 pairs_prfx <- params$pairs_prfx
-params$pairs_prfx <- NULL
 
 gds <- SeqArray::seqOpen(input$gds_fn)
 arguments <- list(
@@ -37,13 +33,7 @@ if (!is.null(input$snp_include)) {
     arguments$snp.include <- readRDS(input$snp_include)
 }
 
-if (length(params) > 0) {
-    for (n in names(params)) {
-        arguments[[n]] <- params[[n]]
-    }
-}
-
-names(arguments) <- gsub("_", ".", names(arguments))
+arguments <- c(arguments, params$pcair_args)
 
 pca <- do.call(GENESIS::pcair, arguments)
 

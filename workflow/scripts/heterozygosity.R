@@ -5,10 +5,6 @@ sink(logcon, type = "message")
 input <- snakemake@input
 output <- snakemake@output
 params <- snakemake@params
-# The SeqArray functions expect some arguments with dots in their names, but
-# that's an illegal character for Snakemake named params. Substitute
-# underscores with dots.
-names(params) <- gsub("_", ".", names(params))
 
 library(SeqVarTools)
 gds <- seqOpen(input$gds_fn)
@@ -24,12 +20,7 @@ arguments <- list(
     use.names = TRUE
 )
 
-if (length(params) > 0) {
-    for (n in names(params)) {
-        arguments[[n]] <- params[[n]]
-    }
-}
-
+arguments <- c(arguments, params$heterozygosity_args)
 htz <- do.call(heterozygosity, arguments)
 out <- tibble::tibble(
     id = as.character(names(htz)),

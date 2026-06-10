@@ -20,7 +20,6 @@ if ("sample_id" %in% names(input)) {
 
 if ("seed" %in% names(params)) {
     set.seed(params[["seed"]])
-    params[["seed"]] <- NULL
 }
 
 hwe_pmt <- hwe(gds, permute = TRUE, parallel = parallel) %>%

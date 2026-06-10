@@ -10,11 +10,8 @@ output <- snakemake@output
 params <- snakemake@params
 
 n_pcs <- params$n_pcs
-params$n_pcs <- NULL
 vb <- params$variantBlock
-params$variantBlock <- NULL
 sk <- params$scaleKin
-params$scaleKin <- NULL
 
 pca <- readRDS(input$pca)
 
@@ -29,19 +26,15 @@ iterator <- SeqVarBlockIterator(seqData, verbose = params$verbose,
 arguments <- list(
     gdsobj = iterator,
     pcs = pca$vectors[, 1:n_pcs],
-    training.set = pca$unrels
+    training.set = pca$unrels,
+    verbose = params$verbose
 )
 
 if (!is.null(input$sample_include)) {
     arguments$sample.include <- readRDS(input$sample_include)
 }
 
-if (length(params) > 0) {
-    for (n in names(params)) {
-        arguments[[n]] <- params[[n]]
-    }
-}
-names(arguments) <- gsub("_", ".", names(arguments))
+arguments <- c(arguments, params$pcrelate_args)
 
 pcr <- do.call(pcrelate, arguments)
 saveRDS(pcr, output$pcr)

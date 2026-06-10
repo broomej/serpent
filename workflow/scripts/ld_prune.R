@@ -5,10 +5,6 @@ sink(logcon, type = "message")
 input <- snakemake@input
 output <- snakemake@output
 params <- snakemake@params
-# The SeqArray functions expect some arguments with dots in their names, but
-# that's an illegal character for Snakemake named params. Substitute
-# underscores with dots.
-names(params) <- gsub("_", ".", names(params))
 
 library(SeqArray)
 gds <- seqOpen(input$gds_fn)
@@ -24,18 +20,13 @@ if ("snp_id" %in% names(input)) {
 
 if ("seed" %in% names(params)) {
     set.seed(params[["seed"]])
-    params[["seed"]] <- NULL
 }
 
 if (!is.null(snakemake@threads)) {
     arguments[["num.thread"]] <- snakemake@threads
 }
 
-if (length(params) > 0) {
-    for (n in names(params)) {
-        arguments[[n]] <- params[[n]]
-    }
-}
+arguments <- c(arguments, params$snpgdsLDpruning_args)
 
 pruned <- do.call(SNPRelate::snpgdsLDpruning, arguments) |>
     unlist()
