@@ -6,7 +6,8 @@ rule create_variant_exclude:
                 INFO/R2 < {params.rsq_common} || \
                 (INFO/MAF < {params.maf_thresh} && INFO/R2 < {params.rsq_rare})' \
             {input.info} > \
-            {output}
+            {output} 2> \
+            {log}
         """
 
 rule create_variant_exclude_delim:
@@ -16,7 +17,8 @@ rule create_variant_exclude_delim:
                 $F[5] < {params.avg_call} | \
                 $F[6] < {params.rsq_common} | \
                 ($F[4] < {params.maf_thresh} & $F[6] < {params.rsq_rare})' > \
-            {output}
+            {output} 2> \
+            {log}
         """
 
 rule filter_vcf:
@@ -26,7 +28,8 @@ rule filter_vcf:
         """
         bcftools view {params.extra_bcftools_opts} -e 'ID=@{input.exclude}' {input.vcf} | \
             bgzip > \
-            {output.vcf}
+            {output.vcf} 2> \
+            {log}
         tabix {output.vcf}
         """
 
@@ -35,7 +38,7 @@ rule concat_vcf:
         extra_bcftools_opts="",
     shell:
         """
-        bcftools concat {params.extra_bcftools_opts} {input} | bgzip -c > {output.vcf}
+        bcftools concat {params.extra_bcftools_opts} {input} | bgzip -c > {output.vcf} 2> {log}
         tabix {output.vcf}
         """ 
 
@@ -44,7 +47,7 @@ rule merge_vcf:
         extra_bcftools_opts="",
     shell:
         """
-        bcftools merge {params.extra_bcftools_opts} {input.vcf} | bgzip -c > {output.vcf}
+        bcftools merge {params.extra_bcftools_opts} {input.vcf} | bgzip -c > {output.vcf} 2> {log}
         tabix {output.vcf}
         """
 
@@ -75,8 +78,6 @@ rule hwe:
     script: "scripts/hwe.R"
 
 rule get_var_data:
-    params:
-        build="hg38",
     script: "scripts/get_var_data.R"
 
 rule combine_varmet:
