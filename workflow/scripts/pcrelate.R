@@ -1,4 +1,6 @@
-#! /usr/bin/env Rscript
+logcon <- file(snakemake@log[[1]], open = "wt")
+sink(logcon)
+sink(logcon, type = "message")
 
 library(SeqArray)
 library(SeqVarTools)

@@ -1,4 +1,3 @@
-#! /usr/bin/env Rscript
 input <- snakemake@input
 output <- snakemake@output
 library(ggplot2)
