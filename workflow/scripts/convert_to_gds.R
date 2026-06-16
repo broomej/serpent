@@ -16,6 +16,10 @@ input <- input[!(names(input) == "tbi")]
 names(input) <- gsub("_", ".", names(input))
 names(output) <- gsub("_", ".", names(output))
 
+# Snakemake duplicates elements in input, one set with names, one without.
+# Remove unnamed elements
+input <- input[names(input) != ""]
+
 arguments <- input
 arguments[[length(arguments) + 1]] <- output[[1]]
 arguments$parallel <- snakemake@threads
