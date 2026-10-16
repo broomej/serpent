@@ -75,6 +75,8 @@ rule heterozygosity:
 rule hwe:
     params:
         seed=51,
+        isSNV=True,
+        biallelic=True,
     script: "scripts/hwe.R"
 
 rule get_var_data:

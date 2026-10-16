@@ -11,11 +11,24 @@ library(SeqVarTools)
 library(dplyr)
 library(magrittr)
 gds <- seqOpen(input$gds_fn)
-if ("variant_id" %in% names(input)) {
-    seqSetFilter(gds, variant.id = readRDS(input$variant_id))
-}
+
 if ("sample_id" %in% names(input)) {
     seqSetFilter(gds, sample.id = readRDS(input$sample_id))
+}
+if ((seqGetData(gds, "sample.id") %>% length()) == 0) {
+    stop("No samples selected")
+}
+
+if (params$isSNV) {
+    seqSetFilter(gds, variant.sel = isSNV(gds, TRUE))
+} else if (params$biallelic) {
+    warning("isSNV is FALSE but biallelic is TRUE and will be ignored")
+}
+if ("variant_id" %in% names(input)) {
+    seqSetFilter(gds, variant.id = readRDS(input$variant_id), action = "intersect")
+}
+if ((seqGetData(gds, "variant.id") %>% length()) == 0) {
+    stop("No variants selected")
 }
 
 if ("seed" %in% names(params)) {
