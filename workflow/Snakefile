@@ -108,3 +108,8 @@ rule pcrelate:
     params:
         verbose=True,
     script: "scripts/pcrelate.R"
+
+rule plot_assoc:
+    params:
+        sparse_thresh=0.1
+    script: "scripts/plot_assoc.R"
