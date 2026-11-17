@@ -111,5 +111,17 @@ rule pcrelate:
 
 rule plot_assoc:
     params:
-        sparse_thresh=0.1
+        sparse_thresh=0.1,
+        hline=[5, 8],
+        nclr=7,
+        palette="Set2",
+        mwidth=16,
+        mheight=9,
+        munit="in",
+        qwidth=8,
+        qheight=8,
+        qunit="in",
+        mxpad=10**7.5,
+        mtitle="",
+
     script: "scripts/plot_assoc.R"
